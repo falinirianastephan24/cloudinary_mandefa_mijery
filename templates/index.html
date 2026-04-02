@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Galerie Sary</title>
+    <title>Galerie Media</title>
 
     <style>
         body {
@@ -16,7 +16,6 @@
             margin: 20px auto;
             width: 300px;
             border-radius: 10px;
-            box-shadow: 0 0 10px gray;
         }
 
         .gallery {
@@ -27,14 +26,13 @@
 
         .card {
             background: white;
-            margin: 15px;
+            margin: 10px;
             padding: 10px;
             border-radius: 10px;
-            width: 200px;
-            box-shadow: 0 0 10px gray;
+            width: 220px;
         }
 
-        img {
+        img, video {
             width: 100%;
             border-radius: 10px;
         }
@@ -43,45 +41,49 @@
             background: red;
             color: white;
             border: none;
-            padding: 5px 10px;
-            margin-top: 10px;
+            padding: 5px;
+            margin-top: 5px;
             cursor: pointer;
-            border-radius: 5px;
-        }
-
-        button:hover {
-            background: darkred;
         }
     </style>
 </head>
 
 <body>
 
-<h2>📤 Ampidiro Sary</h2>
+<h2>📤 Ampidiro Sary na Video</h2>
 
 <form action="/upload" method="POST" enctype="multipart/form-data">
-    <input type="text" name="nom" placeholder="Anaran'ilay sary" required><br><br>
-    <input type="file" name="image" required><br><br>
+    
+    <!-- afaka misafidy maro -->
+    <input type="file" name="files" multiple required><br><br>
+
     <button type="submit">Alefa</button>
 </form>
 
-<h2>🖼️ Galerie</h2>
+<h2>🖼️ / 🎥 Galerie</h2>
 
 <div class="gallery">
-    {% for img in images %}
-        <div class="card">
-            <p><b>{{ img[1] }}</b></p>
 
-            {% if img[2] %}
-                <img src="{{ img[2] }}">
+    {% for m in medias %}
+        <div class="card">
+
+            <p><b>{{ m[1] }}</b></p>
+
+            {% if m[3] == "image" %}
+                <img src="{{ m[2] }}">
+            {% elif m[3] == "video" %}
+                <video controls>
+                    <source src="{{ m[2] }}">
+                </video>
             {% endif %}
 
-            <!-- Bouton supprimer -->
-            <a href="/delete/{{ img[0] }}">
+            <a href="/delete/{{ m[0] }}">
                 <button>Supprimer</button>
             </a>
+
         </div>
     {% endfor %}
+
 </div>
 
 </body>
