@@ -1,7 +1,6 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
     <title>Cloudinary Upload Pro</title>
 
     <style>
@@ -10,146 +9,144 @@
             background: #0f172a;
             color: white;
             text-align: center;
-            padding: 40px;
         }
 
-        form {
-            margin-bottom: 20px;
-        }
-
-        input, button {
+        .card {
+            background: #1e293b;
             padding: 10px;
             margin: 10px;
+        }
+
+        img, video {
+            max-width: 200px;
         }
 
         #progress {
             width: 100%;
             background: #1e293b;
-            border-radius: 10px;
-            overflow: hidden;
             display: none;
         }
 
         #bar {
             height: 20px;
             width: 0%;
-            background: #22c55e;
-        }
-
-        #percentText {
-            display: block;
-            margin-top: 10px;
+            background: green;
         }
     </style>
 </head>
+
 <body>
 
-    <h1>🚀 Upload Images / Files</h1>
+<h1>🚀 Upload Files</h1>
 
-    <form id="uploadForm">
-        <input type="file" id="fileInput" multiple required>
-        <br>
-        <button type="submit">Upload</button>
-    </form>
+<form id="uploadForm">
+    <input type="file" id="fileInput" multiple required>
+    <button type="submit">Upload</button>
+</form>
 
-    <div id="progress">
-        <div id="bar"></div>
-    </div>
-    <span id="percentText">0%</span>
+<div id="progress">
+    <div id="bar"></div>
+</div>
+<p id="percentText">0%</p>
 
-    <script>
-    document.addEventListener("DOMContentLoaded", function() {
+<hr>
 
-        const form = document.getElementById("uploadForm");
-        const fileInput = document.getElementById("fileInput");
-        const progress = document.getElementById("progress");
-        const bar = document.getElementById("bar");
-        const text = document.getElementById("percentText");
+<h2>📁 Files</h2>
 
-        if (!form) return;
+<div>
+    {% for m in medias %}
+        <div class="card">
+            <p>{{ m[1] }}</p>
 
-        form.addEventListener("submit", function(e) {
-            e.preventDefault();
+            {% if m[3] == "image" %}
+                <img src="{{ m[2] }}">
+            {% elif m[3] == "video" %}
+                <video src="{{ m[2] }}" controls></video>
+            {% else %}
+                <a href="{{ m[2] }}" target="_blank">Download</a>
+            {% endif %}
 
-            const files = fileInput.files;
+            <br><br>
+            <button onclick="deleteFile({{ m[0] }})">Delete</button>
+        </div>
+    {% endfor %}
+</div>
 
-            if (!files.length) {
-                alert("Misafidiana fichier aloha");
-                return;
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+
+    const form = document.getElementById("uploadForm");
+    const fileInput = document.getElementById("fileInput");
+    const progress = document.getElementById("progress");
+    const bar = document.getElementById("bar");
+    const text = document.getElementById("percentText");
+
+    form.addEventListener("submit", function(e) {
+        e.preventDefault();
+
+        const files = fileInput.files;
+        if (!files.length) return;
+
+        progress.style.display = "block";
+
+        let uploaded = 0;
+        let totalSize = 0;
+
+        for (let f of files) totalSize += f.size;
+
+        for (let file of files) {
+
+            if (file.size > 50 * 1024 * 1024) {
+                alert("File lehibe loatra");
+                continue;
             }
 
-            progress.style.display = "block";
+            let formData = new FormData();
+            formData.append("file", file);
+            formData.append("upload_preset", "unsigned_upload");
 
-            let uploaded = 0;
-            let totalSize = 0;
+            let xhr = new XMLHttpRequest();
 
-            for (let f of files) totalSize += f.size;
+            xhr.open("POST", "https://api.cloudinary.com/v1_1/dr0hbtyqz/auto/upload");
 
-            for (let file of files) {
-
-                // LIMIT 50MB
-                if (file.size > 50 * 1024 * 1024) {
-                    alert(file.name + " lehibe loatra (max 50MB)");
-                    continue;
+            xhr.upload.onprogress = function(e) {
+                if (e.lengthComputable) {
+                    let percent = Math.round(((uploaded + e.loaded) / totalSize) * 100);
+                    bar.style.width = percent + "%";
+                    text.innerText = percent + "%";
                 }
+            };
 
-                let formData = new FormData();
-                formData.append("file", file);
-                formData.append("upload_preset", "unsigned_upload");
+            xhr.onload = async function() {
+                let data = JSON.parse(xhr.responseText);
 
-                let xhr = new XMLHttpRequest();
+                await fetch("/save", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({
+                        nom: file.name,
+                        url: data.secure_url,
+                        type: data.resource_type
+                    })
+                });
 
-                xhr.open("POST", "https://api.cloudinary.com/v1_1/dr0hbtyqz/auto/upload", true);
+                uploaded += file.size;
 
-                // PROGRESS
-                xhr.upload.onprogress = function(e) {
-                    if (e.lengthComputable) {
-                        let percent = Math.round(((uploaded + e.loaded) / totalSize) * 100);
-                        bar.style.width = percent + "%";
-                        text.innerText = percent + "%";
-                    }
-                };
+                if (uploaded >= totalSize) {
+                    setTimeout(() => location.reload(), 500);
+                }
+            };
 
-                xhr.onload = async function() {
-                    if (xhr.status !== 200) {
-                        alert("Erreur upload Cloudinary");
-                        return;
-                    }
-
-                    let data = JSON.parse(xhr.responseText);
-
-                    // mandefa any backend
-                    await fetch("/save", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({
-                            nom: file.name,
-                            url: data.secure_url,
-                            type: data.resource_type
-                        })
-                    });
-
-                    uploaded += file.size;
-
-                    if (uploaded >= totalSize) {
-                        setTimeout(() => {
-                            alert("Upload vita 🎉");
-                            location.reload();
-                        }, 500);
-                    }
-                };
-
-                xhr.onerror = function() {
-                    alert("Erreur réseau");
-                };
-
-                xhr.send(formData);
-            }
-        });
+            xhr.send(formData);
+        }
     });
-    </script>
+});
+
+function deleteFile(id) {
+    fetch("/delete/" + id)
+        .then(() => location.reload());
+}
+</script>
 
 </body>
 </html>
