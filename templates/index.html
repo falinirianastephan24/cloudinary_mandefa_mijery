@@ -2,7 +2,6 @@
 <html>
 <head>
     <title>Galerie Media</title>
-
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <style>
@@ -55,6 +54,8 @@
 
         a.download {
             font-size: 12px;
+            display: block;
+            margin-top: 5px;
         }
     </style>
 </head>
@@ -72,33 +73,32 @@
 
 <div class="gallery">
 
-    {% for m in medias %}
-        <div class="card">
+{% for m in medias %}
+<div class="card">
 
-            <div class="filename">{{ m[1] }}</div>
+    <div class="filename">{{ m[1] }}</div>
 
-            {% if m[3] == "image" %}
-                <img src="{{ m[2] }}">
+    {% if m[3] == "image" %}
+        <img src="{{ m[2] }}">
 
-            {% elif m[3] == "video" %}
-                <video controls>
-                    <source src="{{ m[2] }}">
-                </video>
+    {% elif m[3] == "video" %}
+        <video controls>
+            <source src="{{ m[2] }}">
+        </video>
 
-            {% elif m[3] == "raw" and m[1].endswith('.pdf') %}
-                <a class="download" href="{{ m[2] }}" target="_blank">📄 Voir PDF</a>
+    {% elif m[3] == "raw" and m[1].endswith('.pdf') %}
+        <a class="download" href="{{ m[2] }}" target="_blank">📄 Voir PDF</a>
 
-            {% else %}
-                <a class="download" href="{{ m[2] }}" target="_blank">📦 Télécharger</a>
-            {% endif %}
+    {% else %}
+        <a class="download" href="{{ m[2] }}" target="_blank">📦 Télécharger</a>
+    {% endif %}
 
-            <br>
-            <a href="/delete/{{ m[0] }}">
-                <button>Supprimer</button>
-            </a>
+    <a href="/delete/{{ m[0] }}">
+        <button>Supprimer</button>
+    </a>
 
-        </div>
-    {% endfor %}
+</div>
+{% endfor %}
 
 </div>
 

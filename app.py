@@ -1,5 +1,5 @@
 # =========================
-# app.py (VERSION AMIN'NY FANAZAVANA AMIN'NY TENY GASY)
+# APP FLASK - UPLOAD MEDIA (VERSION HAINGANA)
 # =========================
 
 from flask import Flask, render_template, request, redirect
@@ -11,7 +11,7 @@ import os
 app = Flask(__name__)
 
 # 🔐 CONFIG CLOUDINARY
-# 👉 SOLOINAO amin'ny kaontinao manokana ireto
+# 👉 SOLOINAO amin'ny kaontinao
 cloudinary.config(
     cloud_name="dr0hbtyqz",
     api_key="561717122881691",
@@ -19,16 +19,13 @@ cloudinary.config(
 )
 
 # 🔗 CONNECTION POSTGRESQL
-# 👉 SOLOINAO amin'ny database-nao
-
 def get_db_connection():
     return psycopg2.connect(
         "postgresql://ny_sariko_user:UcqLatZMNCQkVNMDKnVpcCXRp4Tw1kov@dpg-d772v5450q8c73ds9la0-a/ny_sariko",
         sslmode="require"
     )
 
-# 🗃️ MAMORONA TABLE RAHA TSY MISY
-
+# 🗃️ CREATE TABLE
 def init_db():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -45,7 +42,6 @@ def init_db():
     conn.commit()
     conn.close()
 
-# antsoina rehefa manomboka app
 init_db()
 
 # 🏠 PAGE PRINCIPALE
@@ -54,14 +50,13 @@ def index():
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    # maka ny media rehetra
     cursor.execute("SELECT * FROM media ORDER BY id DESC")
     medias = cursor.fetchall()
 
     conn.close()
     return render_template("index.html", medias=medias)
 
-# 📤 UPLOAD FICHIER (IMAGE / VIDEO / ZIP / RAR / PDF)
+# 📤 UPLOAD FICHIER (VERSION HAINGANA)
 @app.route("/upload", methods=["POST"])
 def upload():
     files = request.files.getlist("files")
@@ -72,28 +67,24 @@ def upload():
     for file in files:
         if file and file.filename != "":
 
-            filename = file.filename
-            ext = os.path.splitext(filename)[1].lower()
+            # ⚠️ LIMIT SIZE (20MB max)
+            if file.content_length and file.content_length > 20 * 1024 * 1024:
+                continue  # tsy alefa raha lehibe loatra
 
-            # 📦 Raha ZIP / RAR / PDF
-            if ext in [".zip", ".rar", ".pdf"]:
-                result = cloudinary.uploader.upload(
-                    file,
-                    resource_type="raw"  # zava-dehibe!
-                )
-                resource_type = "raw"
-
-            else:
-                # 🖼️ na 🎥 (image/video)
-                result = cloudinary.uploader.upload(file)
-                resource_type = result["resource_type"]
+            # 🚀 UPLOAD HAINGANA (AUTO + CHUNK)
+            result = cloudinary.uploader.upload(
+                file,
+                resource_type="auto",     # mahita ho azy (image/video/raw)
+                chunk_size=6000000        # tsara ho an'ny gros fichier
+            )
 
             url = result["secure_url"]
+            resource_type = result["resource_type"]
 
-            # 💾 Tehirizina ao anaty base de données
+            # 💾 INSERT DB
             cursor.execute(
                 "INSERT INTO media (nom, url, type) VALUES (%s, %s, %s)",
-                (filename, url, resource_type)
+                (file.filename, url, resource_type)
             )
 
     conn.commit()
@@ -101,7 +92,7 @@ def upload():
 
     return redirect("/")
 
-# ❌ FAMAFANA MEDIA
+# ❌ DELETE
 @app.route("/delete/<int:id>")
 def delete(id):
     conn = get_db_connection()
@@ -114,10 +105,6 @@ def delete(id):
 
     return redirect("/")
 
-# 🚀 FANDEHANA NY APP
+# 🚀 RUN
 if __name__ == "__main__":
     app.run(debug=True)
-
-
-# =========================
-
