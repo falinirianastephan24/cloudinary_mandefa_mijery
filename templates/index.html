@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Galerie Sary</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: #f4f4f4;
+            text-align: center;
+        }
+
+        form {
+            background: white;
+            padding: 20px;
+            margin: 20px auto;
+            width: 300px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px gray;
+        }
+
+        .gallery {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .card {
+            background: white;
+            margin: 15px;
+            padding: 10px;
+            border-radius: 10px;
+            width: 200px;
+            box-shadow: 0 0 10px gray;
+        }
+
+        img {
+            width: 100%;
+            border-radius: 10px;
+        }
+
+        button {
+            background: red;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            margin-top: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        button:hover {
+            background: darkred;
+        }
+    </style>
+</head>
+
+<body>
+
+<h2>📤 Ampidiro Sary</h2>
+
+<form action="/upload" method="POST" enctype="multipart/form-data">
+    <input type="text" name="nom" placeholder="Anaran'ilay sary" required><br><br>
+    <input type="file" name="image" required><br><br>
+    <button type="submit">Alefa</button>
+</form>
+
+<h2>🖼️ Galerie</h2>
+
+<div class="gallery">
+    {% for img in images %}
+        <div class="card">
+            <p><b>{{ img[1] }}</b></p>
+
+            {% if img[2] %}
+                <img src="{{ img[2] }}">
+            {% endif %}
+
+            <!-- Bouton supprimer -->
+            <a href="/delete/{{ img[0] }}">
+                <button>Supprimer</button>
+            </a>
+        </div>
+    {% endfor %}
+</div>
+
+</body>
+</html>
