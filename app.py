@@ -1,3 +1,7 @@
+# =========================
+# APP FLASK FINAL (RENDER + POSTGRESQL OK)
+# =========================
+
 from flask import Flask, render_template, request, jsonify
 import psycopg2
 import os
@@ -5,7 +9,7 @@ import os
 app = Flask(__name__)
 
 # =========================
-# DB CONNECTION
+# 🔗 CONNECTION POSTGRESQL (AVY AMIN'NY ENV)
 # =========================
 def get_db_connection():
     try:
@@ -14,82 +18,97 @@ def get_db_connection():
             sslmode="require"
         )
     except Exception as e:
-        print("DB ERROR:", e)
+        print("❌ ERREUR DB:", e)
         return None
 
 # =========================
-# HOME
+# 🏠 PAGE PRINCIPALE
 # =========================
 @app.route("/")
 def index():
     conn = get_db_connection()
 
+    # ❗ Raha tsy connect DB
     if conn is None:
-        return "DB TSY CONNECT"
+        return "⚠️ TSY MI-CONNECT NY DATABASE (jereo Render → Environment)"
 
-    cursor = conn.cursor()
+    try:
+        cursor = conn.cursor()
 
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS media (
-            id SERIAL PRIMARY KEY,
-            nom TEXT,
-            url TEXT,
-            type TEXT
-        )
-    """)
+        # 🗃️ CREATE TABLE RAHA TSY MISY
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS media (
+                id SERIAL PRIMARY KEY,
+                nom TEXT,
+                url TEXT,
+                type TEXT
+            )
+        """)
 
-    cursor.execute("SELECT * FROM media ORDER BY id DESC")
-    medias = cursor.fetchall()
+        # 📥 Maka data
+        cursor.execute("SELECT * FROM media ORDER BY id DESC")
+        medias = cursor.fetchall()
 
-    conn.commit()
-    conn.close()
+        conn.commit()
+        conn.close()
 
-    return render_template("index.html", medias=medias)
+        return render_template("index.html", medias=medias)
+
+    except Exception as e:
+        return f"❌ ERREUR DATABASE: {e}"
 
 # =========================
-# SAVE
+# 💾 SAVE DATA (AVY AMIN'NY JS)
 # =========================
 @app.route("/save", methods=["POST"])
 def save():
     conn = get_db_connection()
 
     if conn is None:
-        return jsonify({"error": "DB ERROR"})
+        return jsonify({"error": "DB TSY CONNECT"})
 
-    data = request.get_json()
-    cursor = conn.cursor()
+    try:
+        data = request.get_json()
+        cursor = conn.cursor()
 
-    cursor.execute(
-        "INSERT INTO media (nom, url, type) VALUES (%s, %s, %s)",
-        (data["nom"], data["url"], data["type"])
-    )
+        cursor.execute(
+            "INSERT INTO media (nom, url, type) VALUES (%s, %s, %s)",
+            (data["nom"], data["url"], data["type"])
+        )
 
-    conn.commit()
-    conn.close()
+        conn.commit()
+        conn.close()
 
-    return jsonify({"status": "ok"})
+        return jsonify({"status": "ok"})
+
+    except Exception as e:
+        return jsonify({"error": str(e)})
 
 # =========================
-# DELETE
+# ❌ DELETE
 # =========================
 @app.route("/delete/<int:id>")
 def delete(id):
     conn = get_db_connection()
 
     if conn is None:
-        return jsonify({"error": "DB ERROR"})
+        return jsonify({"error": "DB TSY CONNECT"})
 
-    cursor = conn.cursor()
+    try:
+        cursor = conn.cursor()
 
-    cursor.execute("DELETE FROM media WHERE id=%s", (id,))
+        cursor.execute("DELETE FROM media WHERE id=%s", (id,))
 
-    conn.commit()
-    conn.close()
+        conn.commit()
+        conn.close()
 
-    return jsonify({"status": "deleted"})
+        return jsonify({"status": "deleted"})
+
+    except Exception as e:
+        return jsonify({"error": str(e)})
 
 # =========================
-# RUN LOCAL
+# 🚀 LOCAL ONLY
 # =========================
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
