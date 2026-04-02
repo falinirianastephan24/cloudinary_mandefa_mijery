@@ -6,16 +6,18 @@ import os
 
 app = Flask(__name__)
 
-# 🔐 CONFIG CLOUDINARY
+# 🔐 CONFIG CLOUDINARY (atao mivantana eto)
 cloudinary.config(
-    cloud_name=os.getenv("dr0hbtyqz"),
-    api_key=os.getenv("561717122881691"),
-    api_secret=os.getenv("8YDRpIY46-_X2bca6DLMoOs-qAI")
+    cloud_name="dr0hbtyqz",
+    api_key="561717122881691",
+    api_secret="8YDRpIY46-_X2bca6DLMoOs-qAI"
 )
 
-# 🔗 CONNECTION POSTGRESQL
+# 🔗 CONNECTION POSTGRESQL (atao mivantana koa)
 def get_db_connection():
-    return psycopg2.connect(os.getenv("postgresql://ny_sariko_user:UcqLatZMNCQkVNMDKnVpcCXRp4Tw1kov@dpg-d772v5450q8c73ds9la0-a/ny_sariko"))
+    return psycopg2.connect(
+        "postgres://ny_sariko_user:UcqLatZMNCQkVNMDKnVpcCXRp4Tw1kov@dpg-d772v5450q8c73ds9la0-a/ny_sariko"
+    )
 
 # 🗃️ CREATE TABLE RAHA TSY MISY
 def init_db():
@@ -34,6 +36,7 @@ def init_db():
     conn.commit()
     conn.close()
 
+# Antsoina rehefa manomboka
 init_db()
 
 # 🏠 HOME
@@ -64,7 +67,7 @@ def upload():
             url = result["secure_url"]
 
             # Fantarina hoe image sa video
-            resource_type = result["resource_type"]  # image na video
+            resource_type = result["resource_type"]
 
             # 💾 Tehirizina ao DB
             cursor.execute(
@@ -90,5 +93,6 @@ def delete(id):
 
     return redirect("/")
 
+# 🚀 START APP
 if __name__ == "__main__":
     app.run(debug=True)
