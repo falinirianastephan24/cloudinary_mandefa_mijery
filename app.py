@@ -15,7 +15,7 @@ cloudinary.config(
 
 # 🔗 CONNECTION POSTGRESQL
 def get_db_connection():
-    return psycopg2.connect(os.getenv("DATABASE_URL"))
+    return psycopg2.connect(os.getenv("postgresql://ny_sariko_user:UcqLatZMNCQkVNMDKnVpcCXRp4Tw1kov@dpg-d772v5450q8c73ds9la0-a/ny_sariko"))
 
 # 🗃️ CREATE TABLE RAHA TSY MISY
 def init_db():
