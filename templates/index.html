@@ -1,73 +1,155 @@
-<script>
-// 🚀 UPLOAD PRO LEVEL (REAL PROGRESS)
-document.getElementById("uploadForm").addEventListener("submit", function(e) {
-    e.preventDefault();
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Cloudinary Upload Pro</title>
 
-    const files = document.getElementById("fileInput").files;
-    let progress = document.getElementById("progress");
-    let bar = document.getElementById("bar");
-    let text = document.getElementById("percentText");
-
-    progress.style.display = "block";
-
-    let uploaded = 0;
-    let totalSize = 0;
-
-    // total size rehetra
-    for (let f of files) {
-        totalSize += f.size;
-    }
-
-    for (let file of files) {
-
-        // limit 50MB
-        if (file.size > 50 * 1024 * 1024) {
-            alert("File lehibe loatra (max 50MB)");
-            continue;
+    <style>
+        body {
+            font-family: Arial;
+            background: #0f172a;
+            color: white;
+            text-align: center;
+            padding: 40px;
         }
 
-        let formData = new FormData();
-        formData.append("file", file);
-        formData.append("upload_preset", "unsigned_upload");
+        form {
+            margin-bottom: 20px;
+        }
 
-        let xhr = new XMLHttpRequest();
+        input, button {
+            padding: 10px;
+            margin: 10px;
+        }
 
-        xhr.open("POST", "https://api.cloudinary.com/v1_1/dr0hbtyqz/auto/upload", true);
+        #progress {
+            width: 100%;
+            background: #1e293b;
+            border-radius: 10px;
+            overflow: hidden;
+            display: none;
+        }
 
-        // 🎯 PROGRESS REAL
-        xhr.upload.onprogress = function(e) {
-            if (e.lengthComputable) {
-                let percent = Math.round(((uploaded + e.loaded) / totalSize) * 100);
-                bar.style.width = percent + "%";
-                text.innerText = percent + "%";
+        #bar {
+            height: 20px;
+            width: 0%;
+            background: #22c55e;
+        }
+
+        #percentText {
+            display: block;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🚀 Upload Images / Files</h1>
+
+    <form id="uploadForm">
+        <input type="file" id="fileInput" multiple required>
+        <br>
+        <button type="submit">Upload</button>
+    </form>
+
+    <div id="progress">
+        <div id="bar"></div>
+    </div>
+    <span id="percentText">0%</span>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+
+        const form = document.getElementById("uploadForm");
+        const fileInput = document.getElementById("fileInput");
+        const progress = document.getElementById("progress");
+        const bar = document.getElementById("bar");
+        const text = document.getElementById("percentText");
+
+        if (!form) return;
+
+        form.addEventListener("submit", function(e) {
+            e.preventDefault();
+
+            const files = fileInput.files;
+
+            if (!files.length) {
+                alert("Misafidiana fichier aloha");
+                return;
             }
-        };
 
-        xhr.onload = async function() {
-            let data = JSON.parse(xhr.responseText);
+            progress.style.display = "block";
 
-            // save any backend
-            await fetch("/save", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({
-                    nom: file.name,
-                    url: data.secure_url,
-                    type: data.resource_type
-                })
-            });
+            let uploaded = 0;
+            let totalSize = 0;
 
-            uploaded += file.size;
+            for (let f of files) totalSize += f.size;
 
-            // raha vita daholo
-            if (uploaded >= totalSize) {
-                setTimeout(() => {
-                    location.reload();
-                }, 500);
+            for (let file of files) {
+
+                // LIMIT 50MB
+                if (file.size > 50 * 1024 * 1024) {
+                    alert(file.name + " lehibe loatra (max 50MB)");
+                    continue;
+                }
+
+                let formData = new FormData();
+                formData.append("file", file);
+                formData.append("upload_preset", "unsigned_upload");
+
+                let xhr = new XMLHttpRequest();
+
+                xhr.open("POST", "https://api.cloudinary.com/v1_1/dr0hbtyqz/auto/upload", true);
+
+                // PROGRESS
+                xhr.upload.onprogress = function(e) {
+                    if (e.lengthComputable) {
+                        let percent = Math.round(((uploaded + e.loaded) / totalSize) * 100);
+                        bar.style.width = percent + "%";
+                        text.innerText = percent + "%";
+                    }
+                };
+
+                xhr.onload = async function() {
+                    if (xhr.status !== 200) {
+                        alert("Erreur upload Cloudinary");
+                        return;
+                    }
+
+                    let data = JSON.parse(xhr.responseText);
+
+                    // mandefa any backend
+                    await fetch("/save", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            nom: file.name,
+                            url: data.secure_url,
+                            type: data.resource_type
+                        })
+                    });
+
+                    uploaded += file.size;
+
+                    if (uploaded >= totalSize) {
+                        setTimeout(() => {
+                            alert("Upload vita 🎉");
+                            location.reload();
+                        }, 500);
+                    }
+                };
+
+                xhr.onerror = function() {
+                    alert("Erreur réseau");
+                };
+
+                xhr.send(formData);
             }
-        };
+        });
+    });
+    </script>
 
-        xhr.send(formData);
-    }
-});
-</script>
+</body>
+</html>
