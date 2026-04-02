@@ -1,109 +1,6 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Galerie Media</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <style>
-        body { font-family: Arial; background: #f4f4f4; text-align: center; }
-
-        form { background: white; padding: 15px; margin: 15px auto; width: 90%; max-width: 300px; border-radius: 10px; }
-
-        .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; padding: 10px; }
-
-        .card { background: white; padding: 5px; border-radius: 10px; }
-
-        img, video { width: 100%; border-radius: 10px; cursor: pointer; }
-
-        .filename { font-size: 12px; word-break: break-all; }
-
-        button { background: green; color: white; border: none; padding: 6px; margin-top: 5px; cursor: pointer; }
-
-        /* PROGRESS BAR TSARA */
-        #progress {
-            width: 100%;
-            background: #ccc;
-            margin-top: 10px;
-            display:none;
-            height: 12px;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        #bar {
-            width: 0%;
-            height: 100%;
-            background: linear-gradient(90deg, limegreen, green);
-            transition: width 0.3s;
-        }
-
-        #percentText {
-            font-size: 12px;
-            margin-top: 5px;
-        }
-
-        #modal {
-            display:none;
-            position:fixed;
-            top:0; left:0;
-            width:100%; height:100%;
-            background:rgba(0,0,0,0.8);
-            justify-content:center;
-            align-items:center;
-        }
-
-        #modal img, #modal video {
-            max-width:90%;
-            max-height:90%;
-        }
-    </style>
-</head>
-
-<body>
-
-<h2>📤 Upload rapide</h2>
-
-<form id="uploadForm">
-    <input type="file" id="fileInput" multiple required><br><br>
-    <button type="submit">Alefa</button>
-
-    <div id="progress"><div id="bar"></div></div>
-    <div id="percentText">0%</div>
-</form>
-
-<h2>📁 Galerie</h2>
-
-<div class="gallery">
-
-{% for m in medias %}
-<div class="card">
-
-    <div class="filename">{{ m[1] }}</div>
-
-    {% if m[3] == "image" %}
-        <img src="{{ m[2] }}" onclick="openModal('{{ m[2] }}','image')">
-
-    {% elif m[3] == "video" %}
-        <video onclick="openModal('{{ m[2] }}','video')">
-            <source src="{{ m[2] }}">
-        </video>
-
-    {% else %}
-        <a href="{{ m[2] }}" target="_blank">📦 Télécharger</a>
-    {% endif %}
-
-    <button onclick="deleteMedia({{ m[0] }})">❌ Supprimer</button>
-
-</div>
-{% endfor %}
-
-</div>
-
-<div id="modal" onclick="closeModal()"></div>
-
 <script>
-// UPLOAD
-document.getElementById("uploadForm").addEventListener("submit", async function(e) {
+// 🚀 UPLOAD PRO LEVEL (REAL PROGRESS)
+document.getElementById("uploadForm").addEventListener("submit", function(e) {
     e.preventDefault();
 
     const files = document.getElementById("fileInput").files;
@@ -113,11 +10,17 @@ document.getElementById("uploadForm").addEventListener("submit", async function(
 
     progress.style.display = "block";
 
-    let count = 0;
+    let uploaded = 0;
+    let totalSize = 0;
+
+    // total size rehetra
+    for (let f of files) {
+        totalSize += f.size;
+    }
 
     for (let file of files) {
 
-        // ⚠️ LIMIT VIDEO SIZE (50MB)
+        // limit 50MB
         if (file.size > 50 * 1024 * 1024) {
             alert("File lehibe loatra (max 50MB)");
             continue;
@@ -127,58 +30,44 @@ document.getElementById("uploadForm").addEventListener("submit", async function(
         formData.append("file", file);
         formData.append("upload_preset", "unsigned_upload");
 
-        let res = await fetch("https://api.cloudinary.com/v1_1/dr0hbtyqz/auto/upload", {
-            method: "POST",
-            body: formData
-        });
+        let xhr = new XMLHttpRequest();
 
-        let data = await res.json();
+        xhr.open("POST", "https://api.cloudinary.com/v1_1/dr0hbtyqz/auto/upload", true);
 
-        await fetch("/save", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({
-                nom: file.name,
-                url: data.secure_url,
-                type: data.resource_type
-            })
-        });
+        // 🎯 PROGRESS REAL
+        xhr.upload.onprogress = function(e) {
+            if (e.lengthComputable) {
+                let percent = Math.round(((uploaded + e.loaded) / totalSize) * 100);
+                bar.style.width = percent + "%";
+                text.innerText = percent + "%";
+            }
+        };
 
-        count++;
+        xhr.onload = async function() {
+            let data = JSON.parse(xhr.responseText);
 
-        let percent = Math.round((count / files.length) * 100);
-        bar.style.width = percent + "%";
-        text.innerText = percent + "%";
+            // save any backend
+            await fetch("/save", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    nom: file.name,
+                    url: data.secure_url,
+                    type: data.resource_type
+                })
+            });
+
+            uploaded += file.size;
+
+            // raha vita daholo
+            if (uploaded >= totalSize) {
+                setTimeout(() => {
+                    location.reload();
+                }, 500);
+            }
+        };
+
+        xhr.send(formData);
     }
-
-    location.reload();
 });
-
-// MODAL
-function openModal(url, type) {
-    let modal = document.getElementById("modal");
-
-    if (type === "image") {
-        modal.innerHTML = `<img src="${url}">`;
-    } else {
-        modal.innerHTML = `<video controls autoplay src="${url}"></video>`;
-    }
-
-    modal.style.display = "flex";
-}
-
-function closeModal() {
-    let modal = document.getElementById("modal");
-    modal.style.display = "none";
-    modal.innerHTML = "";
-}
-
-// DELETE
-async function deleteMedia(id) {
-    await fetch("/delete/" + id);
-    location.reload();
-}
 </script>
-
-</body>
-</html>
