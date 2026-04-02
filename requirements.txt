@@ -1,3 +1,4 @@
 Flask
 cloudinary
 gunicorn
+psycopg2-binary
