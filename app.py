@@ -59,13 +59,14 @@ def save():
     try:
         data = request.get_json() or {}
 
-        print("DATA:", data)  # debug
+        # SAFE TYPE
+        type_value = data.get("type") or "raw"
 
         cursor = conn.cursor()
 
         cursor.execute(
             "INSERT INTO media (nom, url, type) VALUES (%s, %s, %s)",
-            (data.get("nom"), data.get("url"), data.get("type"))
+            (data.get("nom"), data.get("url"), type_value)
         )
 
         conn.commit()
