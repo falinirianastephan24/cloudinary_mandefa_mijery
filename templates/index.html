@@ -1,106 +1,75 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <title>Galerie Media</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+<div id="modal" onclick="closeModal()"></div>
 
-    <style>
-        body {
-            font-family: Arial;
-            background: #f4f4f4;
-            text-align: center;
-        }
+<script>
+// PROGRESS + UPLOAD
 
-        form {
-            background: white;
-            padding: 15px;
-            margin: 15px auto;
-            width: 90%;
-            max-width: 300px;
-            border-radius: 10px;
-        }
+document.getElementById("uploadForm").addEventListener("submit", async function(e) {
+    e.preventDefault();
 
-        .gallery {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 10px;
-            padding: 10px;
-        }
+    const files = document.getElementById("fileInput").files;
+    let progress = document.getElementById("progress");
+    let bar = document.getElementById("bar");
 
-        .card {
-            background: white;
-            padding: 5px;
-            border-radius: 10px;
-        }
+    progress.style.display = "block";
 
-        img, video {
-            width: 100%;
-            border-radius: 10px;
-        }
+    let count = 0;
 
-        .filename {
-            font-size: 12px;
-            word-break: break-all;
-        }
+    for (let file of files) {
+        let formData = new FormData();
+        formData.append("file", file);
+        formData.append("upload_preset", "unsigned_upload");
 
-        button {
-            background: red;
-            color: white;
-            border: none;
-            padding: 5px;
-            margin-top: 5px;
-            cursor: pointer;
-        }
+        let res = await fetch("https://api.cloudinary.com/v1_1/dr0hbtyqz/auto/upload", {
+            method: "POST",
+            body: formData
+        });
 
-        a.download {
-            font-size: 12px;
-            display: block;
-            margin-top: 5px;
-        }
-    </style>
-</head>
+        let data = await res.json();
 
-<body>
+        await fetch("/save", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                nom: file.name,
+                url: data.secure_url,
+                type: data.resource_type
+            })
+        });
 
-<h2>📤 Ampidiro fichier</h2>
+        count++;
+        let percent = (count / files.length) * 100;
+        bar.style.width = percent + "%";
+    }
 
-<form action="/upload" method="POST" enctype="multipart/form-data">
-    <input type="file" name="files" multiple required><br><br>
-    <button type="submit">Alefa</button>
-</form>
+    location.reload();
+});
 
-<h2>📁 Galerie</h2>
+// ZOOM MODAL
+function openModal(url, type) {
+    let modal = document.getElementById("modal");
 
-<div class="gallery">
+    if (type === "image") {
+        modal.innerHTML = `<img src="${url}">`;
+    } else {
+        modal.innerHTML = `<video controls autoplay src="${url}"></video>`;
+    }
 
-{% for m in medias %}
-<div class="card">
+    modal.style.display = "flex";
+}
 
-    <div class="filename">{{ m[1] }}</div>
+function closeModal() {
+    let modal = document.getElementById("modal");
+    modal.style.display = "none";
+    modal.innerHTML = "";
+}
 
-    {% if m[3] == "image" %}
-        <img src="{{ m[2] }}">
-
-    {% elif m[3] == "video" %}
-        <video controls>
-            <source src="{{ m[2] }}">
-        </video>
-
-    {% elif m[3] == "raw" and m[1].endswith('.pdf') %}
-        <a class="download" href="{{ m[2] }}" target="_blank">📄 Voir PDF</a>
-
-    {% else %}
-        <a class="download" href="{{ m[2] }}" target="_blank">📦 Télécharger</a>
-    {% endif %}
-
-    <a href="/delete/{{ m[0] }}">
-        <button>Supprimer</button>
-    </a>
-
-</div>
-{% endfor %}
-
-</div>
+// DELETE
+async function deleteMedia(id) {
+    await fetch("/delete/" + id);
+    location.reload();
+}
+</script>
 
 </body>
 </html>
