@@ -1,5 +1,5 @@
 # =========================
-# APP FLASK FINAL (STABLE + RENDER COMPATIBLE)
+# APP FLASK FINAL (NO CRASH VERSION)
 # =========================
 
 from flask import Flask, render_template, request, jsonify
@@ -17,35 +17,6 @@ def get_db_connection():
     )
 
 # =========================
-# 🗃️ CREATE TABLE RAHA TSY MISY
-# =========================
-def init_db():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS media (
-            id SERIAL PRIMARY KEY,
-            nom TEXT,
-            url TEXT,
-            type TEXT
-        )
-    """)
-
-    conn.commit()
-    conn.close()
-
-# =========================
-# 🚀 INITIALISATION DATABASE
-# (compatible Flask 3+)
-# =========================
-try:
-    init_db()
-    print("✅ Database OK")
-except Exception as e:
-    print("❌ Erreur DB:", e)
-
-# =========================
 # 🏠 PAGE PRINCIPALE
 # =========================
 @app.route("/")
@@ -54,18 +25,29 @@ def index():
         conn = get_db_connection()
         cursor = conn.cursor()
 
+        # atao create table eto (safe)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS media (
+                id SERIAL PRIMARY KEY,
+                nom TEXT,
+                url TEXT,
+                type TEXT
+            )
+        """)
+
         cursor.execute("SELECT * FROM media ORDER BY id DESC")
         medias = cursor.fetchall()
 
+        conn.commit()
         conn.close()
 
         return render_template("index.html", medias=medias)
 
     except Exception as e:
-        return f"❌ Erreur affichage: {e}"
+        return f"❌ ERREUR SERVER: {e}"
 
 # =========================
-# 💾 SAVE DATA (JSON)
+# 💾 SAVE DATA
 # =========================
 @app.route("/save", methods=["POST"])
 def save():
@@ -89,7 +71,7 @@ def save():
         return jsonify({"error": str(e)})
 
 # =========================
-# ❌ DELETE MEDIA
+# ❌ DELETE
 # =========================
 @app.route("/delete/<int:id>")
 def delete(id):
@@ -108,7 +90,7 @@ def delete(id):
         return jsonify({"error": str(e)})
 
 # =========================
-# 🚀 RUN LOCAL (tsy ampiasain'i Render)
+# 🚀 LOCAL ONLY
 # =========================
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
