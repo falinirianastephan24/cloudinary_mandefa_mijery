@@ -1,32 +1,41 @@
+# =========================
+# APP FLASK FINAL (RENDER + POSTGRESQL OK)
+# =========================
+
 from flask import Flask, render_template, request, jsonify
 import psycopg2
+import os
 
 app = Flask(__name__)
 
-# 🔗 CONNECTION DB (SAFE)
+# =========================
+# 🔗 CONNECTION POSTGRESQL (AVY AMIN'NY ENV)
+# =========================
 def get_db_connection():
     try:
         return psycopg2.connect(
-            "postgresql://ny_sariko_user:UcqLatZMNCQkVNMDKnVpcCXRp4Tw1kov@dpg-d772v5450q8c73ds9la0-a/ny_sariko",
+            os.environ.get("DATABASE_URL"),
             sslmode="require"
         )
     except Exception as e:
-        print("❌ DB CONNECTION ERROR:", e)
+        print("❌ ERREUR DB:", e)
         return None
 
+# =========================
 # 🏠 PAGE PRINCIPALE
+# =========================
 @app.route("/")
 def index():
     conn = get_db_connection()
 
-    # raha tsy mandeha DB
+    # ❗ Raha tsy connect DB
     if conn is None:
-        return "⚠️ DB TSY MI-CONNECT (jereo logs Render)"
+        return "⚠️ TSY MI-CONNECT NY DATABASE (jereo Render → Environment)"
 
     try:
         cursor = conn.cursor()
 
-        # create table safe
+        # 🗃️ CREATE TABLE RAHA TSY MISY
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS media (
                 id SERIAL PRIMARY KEY,
@@ -36,6 +45,7 @@ def index():
             )
         """)
 
+        # 📥 Maka data
         cursor.execute("SELECT * FROM media ORDER BY id DESC")
         medias = cursor.fetchall()
 
@@ -45,9 +55,11 @@ def index():
         return render_template("index.html", medias=medias)
 
     except Exception as e:
-        return f"❌ ERREUR DB: {e}"
+        return f"❌ ERREUR DATABASE: {e}"
 
-# 💾 SAVE
+# =========================
+# 💾 SAVE DATA (AVY AMIN'NY JS)
+# =========================
 @app.route("/save", methods=["POST"])
 def save():
     conn = get_db_connection()
@@ -72,7 +84,9 @@ def save():
     except Exception as e:
         return jsonify({"error": str(e)})
 
+# =========================
 # ❌ DELETE
+# =========================
 @app.route("/delete/<int:id>")
 def delete(id):
     conn = get_db_connection()
@@ -93,6 +107,8 @@ def delete(id):
     except Exception as e:
         return jsonify({"error": str(e)})
 
-# 🚀 LOCAL
+# =========================
+# 🚀 LOCAL ONLY
+# =========================
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
