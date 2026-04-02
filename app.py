@@ -1,5 +1,5 @@
 # =========================
-# APP FLASK FINAL (VERSION STABLE HO AN'NY RENDER)
+# APP FLASK FINAL (STABLE + RENDER COMPATIBLE)
 # =========================
 
 from flask import Flask, render_template, request, jsonify
@@ -36,16 +36,14 @@ def init_db():
     conn.close()
 
 # =========================
-# 🚀 ATAO REHEFA MISY REQUEST VOALOHANY
-# (zava-dehibe ho an'ny Render)
+# 🚀 INITIALISATION DATABASE
+# (compatible Flask 3+)
 # =========================
-@app.before_first_request
-def setup():
-    try:
-        init_db()
-        print("✅ Database OK")
-    except Exception as e:
-        print("❌ Erreur DB:", e)
+try:
+    init_db()
+    print("✅ Database OK")
+except Exception as e:
+    print("❌ Erreur DB:", e)
 
 # =========================
 # 🏠 PAGE PRINCIPALE
@@ -67,7 +65,7 @@ def index():
         return f"❌ Erreur affichage: {e}"
 
 # =========================
-# 💾 SAVE DATA AVY AMIN'NY JAVASCRIPT
+# 💾 SAVE DATA (JSON)
 # =========================
 @app.route("/save", methods=["POST"])
 def save():
@@ -110,7 +108,7 @@ def delete(id):
         return jsonify({"error": str(e)})
 
 # =========================
-# 🚀 FANDEHANA (LOCAL ONLY)
+# 🚀 RUN LOCAL (tsy ampiasain'i Render)
 # =========================
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
