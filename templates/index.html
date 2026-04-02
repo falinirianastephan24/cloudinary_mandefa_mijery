@@ -3,6 +3,8 @@
 <head>
     <title>Galerie Media</title>
 
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <style>
         body {
             font-family: Arial;
@@ -12,29 +14,34 @@
 
         form {
             background: white;
-            padding: 20px;
-            margin: 20px auto;
-            width: 300px;
+            padding: 15px;
+            margin: 15px auto;
+            width: 90%;
+            max-width: 300px;
             border-radius: 10px;
         }
 
         .gallery {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+            padding: 10px;
         }
 
         .card {
             background: white;
-            margin: 10px;
-            padding: 10px;
+            padding: 5px;
             border-radius: 10px;
-            width: 220px;
         }
 
         img, video {
             width: 100%;
             border-radius: 10px;
+        }
+
+        .filename {
+            font-size: 12px;
+            word-break: break-all;
         }
 
         button {
@@ -45,38 +52,47 @@
             margin-top: 5px;
             cursor: pointer;
         }
+
+        a.download {
+            font-size: 12px;
+        }
     </style>
 </head>
 
 <body>
 
-<h2>📤 Ampidiro Sary na Video</h2>
+<h2>📤 Ampidiro fichier</h2>
 
 <form action="/upload" method="POST" enctype="multipart/form-data">
-    
-    <!-- afaka misafidy maro -->
     <input type="file" name="files" multiple required><br><br>
-
     <button type="submit">Alefa</button>
 </form>
 
-<h2>🖼️ / 🎥 Galerie</h2>
+<h2>📁 Galerie</h2>
 
 <div class="gallery">
 
     {% for m in medias %}
         <div class="card">
 
-            <p><b>{{ m[1] }}</b></p>
+            <div class="filename">{{ m[1] }}</div>
 
             {% if m[3] == "image" %}
                 <img src="{{ m[2] }}">
+
             {% elif m[3] == "video" %}
                 <video controls>
                     <source src="{{ m[2] }}">
                 </video>
+
+            {% elif m[3] == "raw" and m[1].endswith('.pdf') %}
+                <a class="download" href="{{ m[2] }}" target="_blank">📄 Voir PDF</a>
+
+            {% else %}
+                <a class="download" href="{{ m[2] }}" target="_blank">📦 Télécharger</a>
             {% endif %}
 
+            <br>
             <a href="/delete/{{ m[0] }}">
                 <button>Supprimer</button>
             </a>
