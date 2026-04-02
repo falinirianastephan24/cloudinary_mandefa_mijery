@@ -13,9 +13,9 @@ app = Flask(__name__)
 # 🔐 CONFIG CLOUDINARY
 # 👉 SOLOINAO amin'ny kaontinao manokana ireto
 cloudinary.config(
-    cloud_name="YOUR_CLOUD_NAME",
-    api_key="YOUR_API_KEY",
-    api_secret="YOUR_API_SECRET"
+    cloud_name="dr0hbtyqz",
+    api_key="561717122881691",
+    api_secret="8YDRpIY46-_X2bca6DLMoOs-qAI"
 )
 
 # 🔗 CONNECTION POSTGRESQL
@@ -23,7 +23,8 @@ cloudinary.config(
 
 def get_db_connection():
     return psycopg2.connect(
-        "YOUR_DATABASE_URL"
+        "postgresql://ny_sariko_user:UcqLatZMNCQkVNMDKnVpcCXRp4Tw1kov@dpg-d772v5450q8c73ds9la0-a/ny_sariko",
+        sslmode="require"
     )
 
 # 🗃️ MAMORONA TABLE RAHA TSY MISY
