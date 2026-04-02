@@ -1,166 +1,75 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Upload PRO 250MB</title>
-
-    <style>
-        body {
-            font-family: Arial;
-            background: #0f172a;
-            color: white;
-            text-align: center;
-        }
-
-        .card {
-            background: #1e293b;
-            padding: 10px;
-            margin: 10px;
-        }
-
-        img, video {
-            max-width: 200px;
-        }
-
-        #progress {
-            width: 100%;
-            background: #1e293b;
-            display: none;
-        }
-
-        #bar {
-            height: 20px;
-            width: 0%;
-            background: green;
-        }
-    </style>
-</head>
-
-<body>
-
-<h1>🚀 Upload Files (MAX 250MB)</h1>
-
-<form id="uploadForm">
-    <input type="file" id="fileInput" multiple required>
-    <button type="submit">Upload</button>
-</form>
-
-<div id="progress">
-    <div id="bar"></div>
-</div>
-<p id="percentText">0%</p>
-
-<hr>
-
-<h2>📁 Files</h2>
-
-<div>
-    {% for m in medias %}
-        <div class="card">
-            <p>{{ m[1] }}</p>
-
-            {% if m[3] == "image" %}
-                <img src="{{ m[2] }}">
-            {% elif m[3] == "video" %}
-                <video src="{{ m[2] }}" controls></video>
-            {% else %}
-                <a href="{{ m[2] }}" target="_blank">Download</a>
-            {% endif %}
-
-            <br><br>
-            <button onclick="deleteFile({{ m[0] }})">Delete</button>
-        </div>
-    {% endfor %}
-</div>
-
 <script>
-document.addEventListener("DOMContentLoaded", function() {
+document.getElementById("uploadForm").addEventListener("submit", function(e) {
+    e.preventDefault();
 
-    const form = document.getElementById("uploadForm");
-    const fileInput = document.getElementById("fileInput");
-    const progress = document.getElementById("progress");
-    const bar = document.getElementById("bar");
-    const text = document.getElementById("percentText");
+    const files = document.getElementById("fileInput").files;
+    let progress = document.getElementById("progress");
+    let bar = document.getElementById("bar");
+    let text = document.getElementById("percentText");
 
-    form.addEventListener("submit", function(e) {
-        e.preventDefault();
+    if (!files.length) return;
 
-        const files = fileInput.files;
-        if (!files.length) return;
+    progress.style.display = "block";
 
-        progress.style.display = "block";
+    let uploaded = 0;
+    let totalSize = 0;
 
-        let uploaded = 0;
-        let totalSize = 0;
+    for (let f of files) totalSize += f.size;
 
-        for (let f of files) totalSize += f.size;
+    for (let file of files) {
 
-        for (let file of files) {
+        // ✅ LIMIT 100MB
+        if (file.size > 100 * 1024 * 1024) {
+            alert(file.name + " lehibe loatra (max 100MB)");
+            continue;
+        }
 
-            // ✅ LIMIT 250MB
-            if (file.size > 250 * 1024 * 1024) {
-                alert(file.name + " lehibe loatra (max 250MB)");
-                continue;
+        let formData = new FormData();
+        formData.append("file", file);
+        formData.append("upload_preset", "unsigned_upload");
+
+        let xhr = new XMLHttpRequest();
+
+        xhr.open("POST", "https://api.cloudinary.com/v1_1/dr0hbtyqz/auto/upload");
+
+        xhr.upload.onprogress = function(e) {
+            if (e.lengthComputable) {
+                let percent = Math.round(((uploaded + e.loaded) / totalSize) * 100);
+                bar.style.width = percent + "%";
+                text.innerText = percent + "%";
+            }
+        };
+
+        xhr.onload = async function() {
+            if (xhr.status !== 200) {
+                alert("Erreur upload");
+                return;
             }
 
-            let formData = new FormData();
-            formData.append("file", file);
-            formData.append("upload_preset", "unsigned_upload");
+            let data = JSON.parse(xhr.responseText);
 
-            let xhr = new XMLHttpRequest();
+            await fetch("/save", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    nom: file.name,
+                    url: data.secure_url,
+                    type: data.resource_type
+                })
+            });
 
-            xhr.open("POST", "https://api.cloudinary.com/v1_1/dr0hbtyqz/auto/upload");
+            uploaded += file.size;
 
-            xhr.upload.onprogress = function(e) {
-                if (e.lengthComputable) {
-                    let percent = Math.round(((uploaded + e.loaded) / totalSize) * 100);
-                    bar.style.width = percent + "%";
-                    text.innerText = percent + "%";
-                }
-            };
+            if (uploaded >= totalSize) {
+                setTimeout(() => location.reload(), 500);
+            }
+        };
 
-            xhr.onload = async function() {
+        xhr.onerror = function() {
+            alert("Erreur réseau");
+        };
 
-                if (xhr.status !== 200) {
-                    alert("Erreur upload (mety mihoatra limit Cloudinary)");
-                    return;
-                }
-
-                let data = JSON.parse(xhr.responseText);
-
-                await fetch("/save", {
-                    method: "POST",
-                    headers: {"Content-Type": "application/json"},
-                    body: JSON.stringify({
-                        nom: file.name,
-                        url: data.secure_url,
-                        type: data.resource_type
-                    })
-                });
-
-                uploaded += file.size;
-
-                if (uploaded >= totalSize) {
-                    setTimeout(() => {
-                        alert("Upload vita 🎉");
-                        location.reload();
-                    }, 500);
-                }
-            };
-
-            xhr.onerror = function() {
-                alert("Erreur réseau");
-            };
-
-            xhr.send(formData);
-        }
-    });
+        xhr.send(formData);
+    }
 });
-
-function deleteFile(id) {
-    fetch("/delete/" + id)
-        .then(() => location.reload());
-}
 </script>
-
-</body>
-</html>
