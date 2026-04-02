@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Cloudinary Upload Pro</title>
+    <title>Upload PRO 250MB</title>
 
     <style>
         body {
@@ -37,7 +37,7 @@
 
 <body>
 
-<h1>🚀 Upload Files</h1>
+<h1>🚀 Upload Files (MAX 250MB)</h1>
 
 <form id="uploadForm">
     <input type="file" id="fileInput" multiple required>
@@ -96,8 +96,9 @@ document.addEventListener("DOMContentLoaded", function() {
 
         for (let file of files) {
 
-            if (file.size > 50 * 1024 * 1024) {
-                alert("File lehibe loatra");
+            // ✅ LIMIT 250MB
+            if (file.size > 250 * 1024 * 1024) {
+                alert(file.name + " lehibe loatra (max 250MB)");
                 continue;
             }
 
@@ -118,6 +119,12 @@ document.addEventListener("DOMContentLoaded", function() {
             };
 
             xhr.onload = async function() {
+
+                if (xhr.status !== 200) {
+                    alert("Erreur upload (mety mihoatra limit Cloudinary)");
+                    return;
+                }
+
                 let data = JSON.parse(xhr.responseText);
 
                 await fetch("/save", {
@@ -133,8 +140,15 @@ document.addEventListener("DOMContentLoaded", function() {
                 uploaded += file.size;
 
                 if (uploaded >= totalSize) {
-                    setTimeout(() => location.reload(), 500);
+                    setTimeout(() => {
+                        alert("Upload vita 🎉");
+                        location.reload();
+                    }, 500);
                 }
+            };
+
+            xhr.onerror = function() {
+                alert("Erreur réseau");
             };
 
             xhr.send(formData);
