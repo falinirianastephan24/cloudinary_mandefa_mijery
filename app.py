@@ -41,6 +41,7 @@ def index():
         description TEXT
     )
     """)
+    cursor.execute("ALTER TABLE media ADD COLUMN IF NOT EXISTS description TEXT;")
 
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS comments (
