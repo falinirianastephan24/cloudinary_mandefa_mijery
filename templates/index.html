@@ -22,10 +22,6 @@
             max-width: 250px;
             border-radius: 10px;
         }
-
-        textarea {
-            width: 80%;
-        }
     </style>
 </head>
 
@@ -33,25 +29,33 @@
 
 <h1>📁 Galerie-ko</h1>
 
-<a href="/login">Login</a> |
+<!-- 🔐 login popup -->
+<a href="#" onclick="openLogin()">Login</a> |
 <a href="/logout">Logout</a>
 
-<hr>
+<script>
+function openLogin() {
+    window.open("/login", "login", "width=400,height=400");
+}
+</script>
 
-<!-- 📤 Upload (admin ihany) -->
+<!-- ✅ raha admin -->
 {% if session.get("admin") %}
-<form action="/upload" method="POST" enctype="multipart/form-data">
-    <input type="file" name="file" required><br><br>
-
-    <textarea name="description" placeholder="Soraty ny description..." rows="3"></textarea><br><br>
-
-    <button>Upload</button>
-</form>
+<p style="color:lightgreen;">✅ Tafiditra ianao (admin)</p>
 {% endif %}
 
 <hr>
 
-<!-- 📁 MEDIA -->
+<!-- 📤 upload -->
+<form action="/upload" method="POST" enctype="multipart/form-data">
+    <input type="file" name="file" required><br><br>
+    <textarea name="description" placeholder="Soraty ny description..."></textarea><br><br>
+    <button>Upload</button>
+</form>
+
+<hr>
+
+<!-- 📁 media -->
 {% for m in medias %}
 <div class="card">
 
@@ -65,12 +69,10 @@
         <a href="{{ m[2] }}">Download</a>
     {% endif %}
 
-    <!-- 📝 description -->
     {% if m[4] %}
         <p>📝 {{ m[4] }}</p>
     {% endif %}
 
-    <!-- ❌ delete -->
     {% if session.get("admin") %}
     <a href="/delete/{{ m[0] }}">
         <button>Delete</button>
@@ -79,17 +81,16 @@
 
     <hr>
 
-    <!-- 💬 commentaires -->
+    <!-- 💬 commentaire -->
     {% for c in comments %}
         {% if c[1] == m[0] %}
             <p>💬 {{ c[2] }}</p>
         {% endif %}
     {% endfor %}
 
-    <!-- 💬 ajouter commentaire -->
     <form action="/comment" method="POST">
         <input type="hidden" name="media_id" value="{{ m[0] }}">
-        <input type="text" name="text" placeholder="Manorata commentaire..." required>
+        <input type="text" name="text" placeholder="Commentaire..." required>
         <button>Send</button>
     </form>
 

@@ -5,17 +5,19 @@ import cloudinary
 import cloudinary.uploader
 
 app = Flask(__name__)
+
+# 🔐 key an'ny session
 app.secret_key = "SECRET_KEY"
 
-# ☁️ Cloudinary config
+# ☁️ config Cloudinary
 cloudinary.config(
     cloud_name="dr0hbtyqz",
-    api_key="561717122881691",
-    api_secret="8YDRpIY46-_X2bca6DLMoOs-qAI"
+    api_key="YOUR_API_KEY",
+    api_secret="YOUR_API_SECRET"
 )
 
 # =========================
-# 🔌 DB CONNECTION
+# 🔌 connexion database
 # =========================
 def get_db_connection():
     try:
@@ -27,14 +29,14 @@ def get_db_connection():
         return None
 
 # =========================
-# 🏠 HOME
+# 🏠 page principale
 # =========================
 @app.route("/")
 def index():
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    # 📁 media table
+    # table media
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS media (
             id SERIAL PRIMARY KEY,
@@ -45,7 +47,7 @@ def index():
         )
     """)
 
-    # 💬 comment table
+    # table commentaire
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS comments (
             id SERIAL PRIMARY KEY,
@@ -66,7 +68,7 @@ def index():
     return render_template("index.html", medias=medias, comments=comments)
 
 # =========================
-# 🔐 LOGIN
+# 🔐 login (popup)
 # =========================
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -74,14 +76,19 @@ def login():
         username = request.form["username"]
         password = request.form["password"]
 
-        if username == "fammilleTojo" and password == "falyst##123":
-            session["fammilleTojo"] = True
-            return redirect("/")
+        # 🔑 ovay eto ny code-nao
+        if username == "maFamille" and password == "falyst##123":
+            session["admin"] = True
+
+            # mihidy popup + refresh page
+            return "<script>window.opener.location.reload(); window.close();</script>"
+        else:
+            return render_template("login.html", error="❌ Diso ny code")
 
     return render_template("login.html")
 
 # =========================
-# 🚪 LOGOUT
+# 🚪 logout
 # =========================
 @app.route("/logout")
 def logout():
@@ -89,17 +96,17 @@ def logout():
     return redirect("/")
 
 # =========================
-# 📤 UPLOAD (ADMIN ONLY)
+# 📤 upload (admin ihany)
 # =========================
 @app.route("/upload", methods=["POST"])
 def upload():
     if not session.get("admin"):
-        return redirect("/")
+        return "❌ Tsy mahazo upload raha tsy admin"
 
     file = request.files["file"]
     description = request.form.get("description")
 
-    result = cloudinary.uploader.upload(file)
+    result = cloudinary.uploader.upload(file, resource_type="auto")
 
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -115,7 +122,7 @@ def upload():
     return redirect("/")
 
 # =========================
-# ❌ DELETE (ADMIN ONLY)
+# ❌ delete (admin ihany)
 # =========================
 @app.route("/delete/<int:id>")
 def delete(id):
@@ -132,7 +139,7 @@ def delete(id):
     return redirect("/")
 
 # =========================
-# 💬 COMMENT
+# 💬 commentaire
 # =========================
 @app.route("/comment", methods=["POST"])
 def comment():
@@ -153,7 +160,7 @@ def comment():
     return redirect("/")
 
 # =========================
-# ▶️ RUN
+# ▶️ lancement
 # =========================
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
