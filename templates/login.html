@@ -1,21 +1,17 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <title>Login</title>
-</head>
+<body style="background:#0f172a;color:white;text-align:center;">
 
-<body style="text-align:center; background:#0f172a; color:white; font-family:Arial;">
-
-<h2>🔐 Ampidiro ny code admin</h2>
+<h2>🔐 Admin Login</h2>
 
 {% if error %}
 <p style="color:red;">{{ error }}</p>
 {% endif %}
 
 <form method="POST">
-    <input type="text" name="username" placeholder="Anarana" required><br><br>
-    <input type="password" name="password" placeholder="Code admin" required><br><br>
-    <button>Hiditra</button>
+<input name="username" placeholder="Nom"><br><br>
+<input type="password" name="password" placeholder="Code"><br><br>
+<button>Login</button>
 </form>
 
 </body>

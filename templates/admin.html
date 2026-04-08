@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<body style="background:#020617;color:white;text-align:center;">
+
+<h1>⚙️ Dashboard</h1>
+
+<a href="/">Site</a> |
+<a href="/logout">Logout</a>
+
+<hr>
+
+<form action="/upload" method="POST" enctype="multipart/form-data">
+<input type="file" name="file"><br><br>
+<textarea name="description"></textarea><br><br>
+<button>Upload</button>
+</form>
+
+<hr>
+
+{% for m in medias %}
+<div style="background:#1e293b;margin:10px;padding:10px;">
+
+<p>{{ m[1] }}</p>
+
+<a href="/delete/{{ m[0] }}">
+<button>Delete</button>
+</a>
+
+</div>
+{% endfor %}
+
+</body>
+</html>

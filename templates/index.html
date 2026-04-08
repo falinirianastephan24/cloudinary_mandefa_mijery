@@ -1,101 +1,68 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Site-ko</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Galerie</title>
 
-    <style>
-        body {
-            background: #0f172a;
-            color: white;
-            text-align: center;
-            font-family: Arial;
-        }
-
-        .card {
-            background: #1e293b;
-            margin: 15px;
-            padding: 15px;
-            border-radius: 10px;
-        }
-
-        img, video {
-            max-width: 250px;
-            border-radius: 10px;
-        }
-    </style>
+<style>
+body {background:#0f172a; color:white; font-family:Arial; margin:0;}
+.header {padding:15px; text-align:center; background:#020617;}
+.grid {display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:15px; padding:15px;}
+.card {background:#1e293b; padding:10px; border-radius:10px;}
+img,video {width:100%; border-radius:10px;}
+button {background:#38bdf8; border:none; padding:5px 10px; color:white; border-radius:5px;}
+input {padding:5px;}
+</style>
 </head>
 
 <body>
 
-<h1>📁 Galerie-ko</h1>
+<div class="header">
+<h2>📱 Galerie Moderne</h2>
+<a href="/login" style="color:#38bdf8;">Admin</a>
+</div>
 
-<!-- 🔐 login popup -->
-<a href="#" onclick="openLogin()">Login</a> |
-<a href="/logout">Logout</a>
+<div class="grid">
 
-<script>
-function openLogin() {
-    window.open("/login", "login", "width=400,height=400");
-}
-</script>
-
-<!-- ✅ raha admin -->
-{% if session.get("admin") %}
-<p style="color:lightgreen;">✅ Tafiditra ianao (admin)</p>
-{% endif %}
-
-<hr>
-
-<!-- 📤 upload -->
-<form action="/upload" method="POST" enctype="multipart/form-data">
-    <input type="file" name="file" required><br><br>
-    <textarea name="description" placeholder="Soraty ny description..."></textarea><br><br>
-    <button>Upload</button>
-</form>
-
-<hr>
-
-<!-- 📁 media -->
 {% for m in medias %}
 <div class="card">
 
-    <h3>{{ m[1] }}</h3>
+<h4>{{ m[1] }}</h4>
 
-    {% if "image" in m[3] %}
-        <img src="{{ m[2] }}">
-    {% elif "video" in m[3] %}
-        <video src="{{ m[2] }}" controls></video>
-    {% else %}
-        <a href="{{ m[2] }}">Download</a>
-    {% endif %}
+{% if "image" in m[3] %}
+<img src="{{ m[2] }}">
+{% elif "video" in m[3] %}
+<video src="{{ m[2] }}" controls></video>
+{% else %}
+<a href="{{ m[2] }}">Download</a>
+{% endif %}
 
-    {% if m[4] %}
-        <p>📝 {{ m[4] }}</p>
-    {% endif %}
+<p>{{ m[4] }}</p>
 
-    {% if session.get("admin") %}
-    <a href="/delete/{{ m[0] }}">
-        <button>Delete</button>
-    </a>
-    {% endif %}
+<!-- ❤️ like -->
+<a href="/like/{{ m[0] }}">
+<button>❤️ {{ likes[m[0]] }}</button>
+</a>
 
-    <hr>
+<hr>
 
-    <!-- 💬 commentaire -->
-    {% for c in comments %}
-        {% if c[1] == m[0] %}
-            <p>💬 {{ c[2] }}</p>
-        {% endif %}
-    {% endfor %}
+<!-- commentaires -->
+{% for c in comments %}
+{% if c[1] == m[0] %}
+<p>💬 {{ c[2] }}</p>
+{% endif %}
+{% endfor %}
 
-    <form action="/comment" method="POST">
-        <input type="hidden" name="media_id" value="{{ m[0] }}">
-        <input type="text" name="text" placeholder="Commentaire..." required>
-        <button>Send</button>
-    </form>
+<form action="/comment" method="POST">
+<input type="hidden" name="media_id" value="{{ m[0] }}">
+<input type="text" name="text" placeholder="Comment..." required>
+<button>Send</button>
+</form>
 
 </div>
 {% endfor %}
+
+</div>
 
 </body>
 </html>
