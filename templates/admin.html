@@ -1,29 +1,33 @@
 <!DOCTYPE html>
 <html>
-<body style="background:#020617;color:white;text-align:center;">
+<body style="background:#020617;color:white;text-align:center;font-family:Arial;">
 
-<h1>⚙️ Dashboard</h1>
+<h1>⚙️ Dashboard Admin</h1>
 
-<a href="/">Site</a> |
-<a href="/logout">Logout</a>
+<a href="/">🏠 Site</a> |
+<a href="/logout">🚪 Logout</a>
 
 <hr>
 
+<h3>📤 Upload</h3>
+
 <form action="/upload" method="POST" enctype="multipart/form-data">
-<input type="file" name="file"><br><br>
-<textarea name="description"></textarea><br><br>
-<button>Upload</button>
+<input type="file" name="file" required><br><br>
+<textarea name="description" placeholder="Description..."></textarea><br><br>
+<button style="background:#38bdf8;padding:8px;border:none;border-radius:5px;">Upload</button>
 </form>
 
 <hr>
 
+<h3>📁 Fichiers</h3>
+
 {% for m in medias %}
-<div style="background:#1e293b;margin:10px;padding:10px;">
+<div style="background:#1e293b;margin:10px;padding:10px;border-radius:10px;">
 
 <p>{{ m[1] }}</p>
 
 <a href="/delete/{{ m[0] }}">
-<button>Delete</button>
+<button style="background:red;padding:5px;border:none;border-radius:5px;">❌ Delete</button>
 </a>
 
 </div>

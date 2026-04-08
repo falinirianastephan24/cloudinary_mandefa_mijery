@@ -5,21 +5,80 @@
 <title>Galerie</title>
 
 <style>
-body {background:#0f172a; color:white; font-family:Arial; margin:0;}
-.header {padding:15px; text-align:center; background:#020617;}
-.grid {display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:15px; padding:15px;}
-.card {background:#1e293b; padding:10px; border-radius:10px;}
-img,video {width:100%; border-radius:10px;}
-button {background:#38bdf8; border:none; padding:5px 10px; color:white; border-radius:5px;}
-input {padding:5px;}
+body {
+    background:#0f172a;
+    color:white;
+    font-family:Arial;
+    margin:0;
+}
+
+.header {
+    padding:15px;
+    text-align:center;
+    background:#020617;
+    font-size:20px;
+}
+
+.header a {
+    color:#38bdf8;
+    text-decoration:none;
+    margin-left:10px;
+}
+
+.grid {
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+    gap:15px;
+    padding:15px;
+}
+
+.card {
+    background:#1e293b;
+    padding:10px;
+    border-radius:12px;
+    transition:0.3s;
+}
+
+.card:hover {
+    transform:scale(1.03);
+}
+
+img,video {
+    width:100%;
+    border-radius:10px;
+}
+
+button {
+    background:#38bdf8;
+    border:none;
+    padding:6px 12px;
+    color:white;
+    border-radius:6px;
+    cursor:pointer;
+}
+
+button:hover {
+    background:#0ea5e9;
+}
+
+input {
+    padding:6px;
+    border-radius:5px;
+    border:none;
+}
+
+.comment-box {
+    margin-top:5px;
+}
+
 </style>
 </head>
 
 <body>
 
 <div class="header">
-<h2>📱 Galerie Moderne</h2>
-<a href="/login" style="color:#38bdf8;">Admin</a>
+📱 Galerie Moderne
+<a href="/login">Admin</a>
 </div>
 
 <div class="grid">
@@ -46,16 +105,16 @@ input {padding:5px;}
 
 <hr>
 
-<!-- commentaires -->
+<!-- 💬 commentaires -->
 {% for c in comments %}
 {% if c[1] == m[0] %}
 <p>💬 {{ c[2] }}</p>
 {% endif %}
 {% endfor %}
 
-<form action="/comment" method="POST">
+<form action="/comment" method="POST" class="comment-box">
 <input type="hidden" name="media_id" value="{{ m[0] }}">
-<input type="text" name="text" placeholder="Comment..." required>
+<input type="text" name="text" placeholder="Commentaire..." required>
 <button>Send</button>
 </form>
 
