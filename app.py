@@ -4,11 +4,9 @@ import cloudinary
 import cloudinary.uploader
 
 app = Flask(__name__)
-
-# 🔐 SECRET KEY
 app.secret_key = "mysecretkey123"
 
-# ☁️ CLOUDINARY (DIRECT)
+# ☁️ CLOUDINARY
 cloudinary.config(
     cloud_name="dr0hbtyqz",
     api_key="561717122881691",
@@ -16,7 +14,7 @@ cloudinary.config(
 )
 
 # ======================
-# 🔌 DATABASE (DIRECT)
+# 🔌 DATABASE
 # ======================
 def get_db_connection():
     return psycopg2.connect(
@@ -25,24 +23,26 @@ def get_db_connection():
     )
 
 # ======================
-# 🏠 PUBLIC
+# 🛠️ INIT DB (IMPORTANT)
 # ======================
-@app.route("/")
-def index():
+def init_db():
     conn = get_db_connection()
     cursor = conn.cursor()
 
+    # MEDIA
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS media (
         id SERIAL PRIMARY KEY,
         nom TEXT,
         url TEXT,
-        type TEXT,
-        description TEXT
+        type TEXT
     )
     """)
+
+    # 🔥 manampy colonne raha tsy misy
     cursor.execute("ALTER TABLE media ADD COLUMN IF NOT EXISTS description TEXT;")
 
+    # COMMENTS
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS comments (
         id SERIAL PRIMARY KEY,
@@ -51,12 +51,26 @@ def index():
     )
     """)
 
+    # LIKES
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS likes (
         id SERIAL PRIMARY KEY,
         media_id INTEGER
     )
     """)
+
+    conn.commit()
+    conn.close()
+
+# ======================
+# 🏠 PUBLIC
+# ======================
+@app.route("/")
+def index():
+    init_db()  # 🔥 atao foana
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
 
     cursor.execute("SELECT * FROM media ORDER BY id DESC")
     medias = cursor.fetchall()
@@ -75,7 +89,9 @@ def index():
 
     return render_template("index.html", medias=medias, comments=comments, likes=likes)
 
+# ======================
 # ❤️ LIKE
+# ======================
 @app.route("/like/<int:id>")
 def like(id):
     conn = get_db_connection()
@@ -87,7 +103,9 @@ def like(id):
 
     return redirect("/")
 
+# ======================
 # 🔐 LOGIN
+# ======================
 @app.route("/login", methods=["GET","POST"])
 def login():
     if request.method == "POST":
@@ -99,51 +117,67 @@ def login():
 
     return render_template("login.html")
 
+# ======================
 # 🚪 LOGOUT
+# ======================
 @app.route("/logout")
 def logout():
     session.clear()
     return redirect("/")
 
+# ======================
 # ⚙️ ADMIN
+# ======================
 @app.route("/admin")
 def admin():
     if not session.get("admin"):
         return redirect("/login")
 
+    init_db()  # 🔥 important
+
     conn = get_db_connection()
     cursor = conn.cursor()
+
     cursor.execute("SELECT * FROM media ORDER BY id DESC")
     medias = cursor.fetchall()
+
     conn.close()
 
     return render_template("admin.html", medias=medias)
 
+# ======================
 # 📤 UPLOAD
+# ======================
 @app.route("/upload", methods=["POST"])
 def upload():
     if not session.get("admin"):
         return redirect("/login")
 
-    file = request.files["file"]
-    description = request.form.get("description")
+    try:
+        file = request.files["file"]
+        description = request.form.get("description")
 
-    result = cloudinary.uploader.upload(file, resource_type="auto")
+        result = cloudinary.uploader.upload(file, resource_type="auto")
 
-    conn = get_db_connection()
-    cursor = conn.cursor()
+        conn = get_db_connection()
+        cursor = conn.cursor()
 
-    cursor.execute(
-        "INSERT INTO media (nom, url, type, description) VALUES (%s,%s,%s,%s)",
-        (file.filename, result["secure_url"], result["resource_type"], description)
-    )
+        cursor.execute(
+            "INSERT INTO media (nom, url, type, description) VALUES (%s,%s,%s,%s)",
+            (file.filename, result["secure_url"], result["resource_type"], description)
+        )
 
-    conn.commit()
-    conn.close()
+        conn.commit()
+        conn.close()
 
-    return redirect("/admin")
+        return redirect("/admin")
 
+    except Exception as e:
+        return f"❌ ERROR: {e}"
+
+# ======================
 # ❌ DELETE
+# ======================
 @app.route("/delete/<int:id>")
 def delete(id):
     if not session.get("admin"):
@@ -151,13 +185,16 @@ def delete(id):
 
     conn = get_db_connection()
     cursor = conn.cursor()
+
     cursor.execute("DELETE FROM media WHERE id=%s",(id,))
     conn.commit()
     conn.close()
 
     return redirect("/admin")
 
+# ======================
 # 💬 COMMENT
+# ======================
 @app.route("/comment", methods=["POST"])
 def comment():
     conn = get_db_connection()
